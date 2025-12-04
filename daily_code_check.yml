@@ -1,0 +1,42 @@
+name: Daily Code Check
+
+on:
+  schedule:
+    - cron: "0 1 * * *"   # Runs every day at midnight UTC
+  workflow_dispatch:       # Allows manual trigger
+  push:
+    branches: [ main ]     # Optional: runs on pushes to main
+
+jobs:
+  code-quality:
+    name: Run Linting & Tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Rust
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          override: true
+
+      - name: Install dependencies
+        run: cargo fetch
+
+      - name: Run formatter check
+        run: cargo fmt --all -- --check
+
+      - name: Run Clippy (linter)
+        run: cargo clippy --all-targets --all-features -- -D warnings
+
+      - name: Run tests
+        run: cargo test --all
+
+      - name: Upload test results (if any)
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-failures
+          path: target/debug/deps
