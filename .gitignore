@@ -1,0 +1,16 @@
+# ignore PDF Files and Word Documents
+*.pdf
+*.docx
+
+#ignore temporary files
+*.tmp
+*.log
+
+# ignore OS generated files
+.DS_Store
+Thumbs.db
+
+# ignore database Files
+*.sqlite
+*.db
+*.rdb
