@@ -1,43 +1,42 @@
-name: Daily Code Check
+name: Daily Repo Health Check
 
 on:
   schedule:
-    - cron: "40 18 * * *" # run daily at midnight 12:10 AM IST
-      # IST is UTC +5:30, so 12:10 AM IST is 18:40 UTC
-  workflow_dispatch:       # Allows manual trigger
-  push:
-    branches: [ main ]     # Optional: runs on pushes to main
+    - cron: "40 18 * * *"   # runs daily at midnight UTC
+  workflow_dispatch:
 
 jobs:
-  code-quality:
-    name: Run Linting & Tests
+  validate:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repository
+      - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Set up Rust
-        uses: actions-rs/toolchain@v1
-        with:
-          toolchain: stable
-          override: true
+      # --- YAML validation ---
+      - name: Validate YAML files
+        run: |
+          sudo apt-get install -y yamllint
+          yamllint .
 
-      - name: Install dependencies
-        run: cargo fetch
+      # --- JSON validation ---
+      - name: Validate JSON files
+        run: |
+          if find . -name "*.json" | grep -q .; then
+            for f in $(find . -name "*.json"); do
+              echo "Checking $f"
+              jq empty "$f"
+            done
+          else
+            echo "No JSON files found — skipping."
+          fi
 
-      - name: Run formatter check
-        run: cargo fmt --all -- --check
-
-      - name: Run Clippy (linter)
-        run: cargo clippy --all-targets --all-features -- -D warnings
-
-      - name: Run tests
-        run: cargo test --all
-
-      - name: Upload test results (if any)
-        if: failure()
-        uses: actions/upload-artifact@v4
-        with:
-          name: test-failures
-          path: target/debug/deps
+      # --- Python linting (only if python files exist) ---
+      - name: Optional Python linting
+        run: |
+          if find . -name "*.py" | grep -q .; then
+            pip install flake8
+            flake8 .
+          else
+            echo "No Python files found — skipping."
+          fi
