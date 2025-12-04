@@ -1,0 +1,11 @@
+[package]
+name = "oracle_manager"
+version = "0.1.0"
+edition = "2024"
+
+
+[dependencies]
+axum = "0.7"
+tokio = { version = "1.36", features = ["full"] }
+rand = "0.9"
+
