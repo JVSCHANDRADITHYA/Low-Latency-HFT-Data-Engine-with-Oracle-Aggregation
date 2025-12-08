@@ -14,3 +14,5 @@ Thumbs.db
 *.sqlite
 *.db
 *.rdb
+target/
+**/target/
