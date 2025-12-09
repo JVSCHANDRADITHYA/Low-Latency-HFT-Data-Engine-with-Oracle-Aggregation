@@ -7,9 +7,7 @@ declare_id!("OracLe1111111111111111111111111111111111");
 pub mod oracle_integration {
     use super::*;
 
-    // =============================
-    // ✅ READ PYTH PRICE
-    // =============================
+
     pub fn get_pyth_price(ctx: Context<GetPythPrice>) -> Result<PriceData> {
         let price_feed: PriceFeed =
             load_price_feed_from_account_info(&ctx.accounts.pyth_feed)?;
@@ -18,14 +16,13 @@ pub mod oracle_integration {
             .get_current_price()
             .ok_or(OracleError::PriceUnavailable)?;
 
-        // ✅ Staleness check
+
         let clock = Clock::get()?;
         require!(
             clock.unix_timestamp - price_data.publish_time <= ctx.accounts.config.max_staleness,
             OracleError::PriceStale
         );
 
-        // ✅ Confidence check
         require!(
             price_data.conf <= ctx.accounts.config.max_confidence as i64,
             OracleError::ConfidenceTooHigh
@@ -62,9 +59,6 @@ pub mod oracle_integration {
         })
     }
 
-    // =============================
-    // ✅ CONSENSUS VALIDATION
-    // =============================
     pub fn validate_price_consensus(
         _ctx: Context<ValidatePrice>,
         mut prices: Vec<PriceData>,
@@ -83,9 +77,6 @@ pub mod oracle_integration {
     }
 }
 
-// =============================
-// ✅ ACCOUNT CONTEXTS
-// =============================
 
 #[derive(Accounts)]
 pub struct GetPythPrice<'info> {
@@ -108,9 +99,7 @@ pub struct GetSwitchboardPrice<'info> {
 pub struct ValidatePrice {}
 
 
-// =============================
-// ✅ DATA STRUCTURES
-// =============================
+
 
 #[derive(AnchorSerialize, AnchorDeserialize, Clone)]
 pub struct PriceData {
@@ -138,10 +127,6 @@ pub struct OracleConfig {
     pub max_deviation: u64,   // basis points
 }
 
-// =============================
-// ✅ SWITCHBOARD MOCK STRUCT
-// =============================
-// (Used for compiling without full switchboard SDK)
 
 #[account]
 pub struct SwitchboardAggregator {
@@ -156,9 +141,6 @@ pub struct SwitchboardResult {
     pub updated_at: i64,
 }
 
-// =============================
-// ✅ ERROR CODES
-// =============================
 
 #[error_code]
 pub enum OracleError {
