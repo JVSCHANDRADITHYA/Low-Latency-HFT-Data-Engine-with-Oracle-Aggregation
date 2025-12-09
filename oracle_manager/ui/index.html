@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Oracle Dashboard</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #0f172a;
+      color: white;
+      padding: 20px;
+    }
+    .card {
+      background: #1e293b;
+      padding: 20px;
+      border-radius: 10px;
+      margin-bottom: 20px;
+    }
+    .green { color: #22c55e; }
+    .red { color: #ef4444; }
+  </style>
+</head>
+<body>
+
+  <h1>📊 Oracle Manager Dashboard</h1>
+
+  <div class="card">
+    <h2>BTC Price</h2>
+    <h1 id="btc-price">$0</h1>
+  </div>
+
+  <div class="card">
+    <h2>Oracle Health</h2>
+    <h3 id="health-status">Loading...</h3>
+  </div>
+
+  <div class="card">
+    <h2>BTC Price History</h2>
+    <canvas id="btcChart"></canvas>
+  </div>
+
+  <script>
+    const priceEl = document.getElementById("btc-price");
+    const healthEl = document.getElementById("health-status");
+
+    const ctx = document.getElementById("btcChart").getContext("2d");
+
+    const btcChart = new Chart(ctx, {
+      type: "line",
+      data: {
+        labels: [],
+        datasets: [{
+          label: "BTC Price",
+          data: [],
+          borderColor: "#38bdf8",
+          tension: 0.3
+        }]
+      }
+    });
+
+    async function refreshData() {
+      // ✅ Current Price
+      const priceRes = await fetch("http://localhost:3000/oracle/price/BTC");
+      const priceData = await priceRes.json();
+
+      if (priceData.price) {
+        priceEl.innerText = `$${priceData.price.toFixed(2)}`;
+      }
+
+      // ✅ Health
+      const healthRes = await fetch("http://localhost:3000/oracle/health");
+      const healthData = await healthRes.json();
+
+      healthEl.innerText = healthData.status?.toUpperCase() || "UNKNOWN";
+      healthEl.className = healthData.status === "healthy" ? "green" : "red";
+
+      // ✅ History
+      const historyRes = await fetch("http://localhost:3000/oracle/history/BTC");
+      const historyData = await historyRes.json();
+
+      const prices = historyData.map(x => x.price).reverse();
+      const labels = historyData.map(x => new Date(x.timestamp * 1000).toLocaleTimeString()).reverse();
+
+      btcChart.data.labels = labels;
+      btcChart.data.datasets[0].data = prices;
+      btcChart.update();
+    }
+
+    refreshData();
+    setInterval(refreshData, 2000);
+  </script>
+
+</body>
+</html>
