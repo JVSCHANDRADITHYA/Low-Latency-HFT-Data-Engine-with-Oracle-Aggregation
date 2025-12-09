@@ -1,18 +1,40 @@
-# ignore PDF Files and Word Documents
+# =========================
+# Documents
+# =========================
 *.pdf
 *.docx
 
-#ignore temporary files
+# =========================
+# Temporary & Log Files
+# =========================
 *.tmp
 *.log
 
-# ignore OS generated files
+# =========================
+# OS Generated Files
+# =========================
 .DS_Store
 Thumbs.db
 
-# ignore database Files
+# =========================
+# Database Files
+# =========================
 *.sqlite
 *.db
 *.rdb
+
+# =========================
+# Rust Build Artifacts (CRITICAL)
+# =========================
 target/
 **/target/
+**/node_modules/
+/node_modules/
+
+
+# =========================
+# Editor Junk (Optional but Recommended)
+# =========================
+.vscode/
+.idea/
+*.swp
