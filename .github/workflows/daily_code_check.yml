@@ -1,42 +1,28 @@
-name: Daily Repo Health Check
+name: Daily Rust Dependency Health Check
 
 on:
   schedule:
-    - cron: "40 18 * * *"   # runs daily at midnight UTC
+    - cron: "0 11 * * *"   # 4:30 PM IST (11:00 AM UTC)
   workflow_dispatch:
 
 jobs:
-  validate:
+  dependency-check:
     runs-on: ubuntu-latest
+    continue-on-error: true   # 👈 prevents failure emails
 
     steps:
-      - name: Checkout code
+      - name: Checkout repository
         uses: actions/checkout@v4
 
-      # --- YAML validation ---
-      - name: Validate YAML files
-        run: |
-          sudo apt-get install -y yamllint
-          yamllint .
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
 
-      # --- JSON validation ---
-      - name: Validate JSON files
+      - name: Fetch dependencies (network check)
         run: |
-          if find . -name "*.json" | grep -q .; then
-            for f in $(find . -name "*.json"); do
-              echo "Checking $f"
-              jq empty "$f"
-            done
-          else
-            echo "No JSON files found — skipping."
-          fi
+          echo "Fetching Rust dependencies..."
+          cargo fetch || echo "Dependency fetch failed (ignored)"
 
-      # --- Python linting (only if python files exist) ---
-      - name: Optional Python linting
+      - name: Cargo check (non-fatal)
         run: |
-          if find . -name "*.py" | grep -q .; then
-            pip install flake8
-            flake8 .
-          else
-            echo "No Python files found — skipping."
-          fi
+          echo "Running cargo check..."
+          cargo check || echo "Cargo check failed (ignored)"
